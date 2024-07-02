@@ -94,7 +94,7 @@ def cleanup(plrs, dlr):
         plrs[x].insurance = False
         plrs[x].handTotals = []
     dlr.hand = []
-    dlr.handTotal = 0;
+    dlr.handTotal = 0
     dlr.highAce = False
 
 # evaluate dealer's turn (draw until H17)
