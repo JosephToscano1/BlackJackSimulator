@@ -76,10 +76,10 @@ def dealToPlayer(shoe, player, handNo):
 def cleanup(plrs, dlr):
     for i in range(len(plrs)):
         for j in range(len(plrs[i].hands)):
-            if(plrs[i].handTotals[j] == 21 and dlr.handTotal != 21):
+            if(plrs[i].handTotals[j] == 21 and dlr.handTotal != 21 and len(plrs[i].hands[j]) == 2):
                 plrs[i].balance += plrs[i].bets[j]*3
                 print("Player "+ str(i+1) +" wins with Blackjack on hand "+str(j+1)+"!")
-            elif(plrs[i].handTotals[j] < 21 and ((plrs[i].handTotals[j] > dlr.handTotal) or (dlr.handTotal > 21))):
+            elif(plrs[i].handTotals[j] < 22 and ((plrs[i].handTotals[j] > dlr.handTotal) or (dlr.handTotal > 21))):
                 plrs[i].balance += plrs[i].bets[j]*2
                 print("Player "+ str(i+1)+ " wins on hand "+str(j+1)+"!")
             elif(plrs[i].handTotals[j] == dlr.handTotal):
@@ -104,6 +104,7 @@ def dlrTurn(shoe, dlr):
         dealToDealer(shoe, dlr)
         if(dlr.handTotal > 21 and dlr.highAce):
             dlr.handTotal -= 10
+            dlr.highAce = False
     print("Dealer hand after drawing cards:" + str(dlr.hand))
     print("Total: "+ str(dlr.handTotal))
 
