@@ -78,13 +78,13 @@ def cleanup(plrs, dlr):
     for i in range(len(plrs)):
         # check if a hand won, tied, or lost and update player's balance accordingly
         for j in range(len(plrs[i].hands)):
-            if(plrs[i].handTotals[j] == 21 and dlr.handTotal != 21 and len(plrs[i].hands[j]) == 2):
+            if(plrs[i].handTotals[j] == 21 and len(plrs[i].hands[j]) == 2):
                 plrs[i].balance += plrs[i].bets[j]*3
                 print("Player "+ str(i+1) +" wins with Blackjack on hand "+str(j+1)+"!")
             elif(plrs[i].handTotals[j] < 22 and ((plrs[i].handTotals[j] > dlr.handTotal) or (dlr.handTotal > 21))):
                 plrs[i].balance += plrs[i].bets[j]*2
                 print("Player "+ str(i+1)+ " wins on hand "+str(j+1)+"!")
-            elif(plrs[i].handTotals[j] == dlr.handTotal):
+            elif(plrs[i].handTotals[j] == dlr.handTotal and plrs[i].handTotals[j] < 22):
                 plrs[i].balance += plrs[i].bets[j]
                 print("Player " + str(i + 1) + " push on hand " + str(j + 1) + ", eh")
             else:
