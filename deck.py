@@ -58,6 +58,7 @@ def dealToDealer(shoe, player):
     else:
         player.handTotal += 10
 
+# deal a card to the hand provided and update its total
 def dealToPlayer(shoe, player, handNo):
     player.hands[handNo].append(shoe.pop(0))
     currCard = player.hands[handNo][len(player.hands[handNo])-1][: -1]
@@ -75,6 +76,7 @@ def dealToPlayer(shoe, player, handNo):
 # reset hands, totals, and variables of player and dealer.
 def cleanup(plrs, dlr):
     for i in range(len(plrs)):
+        # check if a hand won, tied, or lost and update player's balance accordingly
         for j in range(len(plrs[i].hands)):
             if(plrs[i].handTotals[j] == 21 and dlr.handTotal != 21 and len(plrs[i].hands[j]) == 2):
                 plrs[i].balance += plrs[i].bets[j]*3
@@ -88,6 +90,7 @@ def cleanup(plrs, dlr):
             else:
                 print("Player " + str(i + 1) + " loses on hand "+str(j+1)+" :( ")
         print("Balance: " + str(plrs[i].balance))
+    # reset initial values for player and dealer attributes
     for x in range(len(plrs)):
         plrs[x].hands = []
         plrs[x].highAce = []
