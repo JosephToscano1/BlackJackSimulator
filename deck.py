@@ -208,6 +208,8 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
 # deal hands to each player and the dealer
 def initialDeal(shoe, plrs, plrCount, first):
     dlrAce = False
+    enteredCount = False
+    enteredBet = False
 
     # If this is the first deal, get player balance and burn the first card, regardless, get number of hands and set default values for each player
     if(first):
@@ -215,19 +217,33 @@ def initialDeal(shoe, plrs, plrCount, first):
             plrs.append(player(int(input("Player "+ str(x +1)+", how much of the college fund are we playing with today? ")),
                                [],
                                [], [], [], False))
-            for y in range(int(input("And how many hands are you playing with? "))):
-                plrs[x].bets.append(int(input("Player " + str(x + 1) + ", place your bet for hand "+ str(y+1)+ ": ")))
-                plrs[x].hands.append([])
-                plrs[x].balance -= plrs[x].bets[y]
-                plrs[x].highAce.append(0)
-                plrs[x].handTotals.append(0)
         #Burn first card
         shoe.pop(0)
         first = False
-    else:
-        for x in range(plrCount):
-            for y in range(int(input("Player "+ str(x+1) +", how many hands are you playing with? "))):
-                plrs[x].bets.append(int(input("Player " + str(x + 1) + ", place your bet for hand " + str(y + 1) + ": ")))
+
+    enteredCount = False
+    enteredBet = False
+    for x in range(plrCount):
+        if(plrs[x].balance < 10):
+            plrs.pop(x)
+            print("Player "+str(x+1)+" has been removed due to insufficient balance. Player numbers have shifted accordingly")
+        else:
+            while(not(enteredCount)):
+                handCount = int(input("Player "+str(x+1)+", how many hands are you playing with? "))
+                if(handCount > 3 or handCount < 1):
+                    print("Apologies, each player must have at least 1 and no more than 3 hands")
+                else:
+                    enteredCount = True
+
+            for y in range(handCount):
+                while(not(enteredBet)):
+                    bet = int(input("Player " + str(x + 1) + ", place your bet for hand " + str(y + 1) + ": "))
+                    if(bet > plrs[x].balance):
+                        print("Insufficient balance for bet")
+                    else:
+                        enteredBet = True
+
+                plrs[x].bets.append(bet)
                 plrs[x].hands.append([])
                 plrs[x].balance -= plrs[x].bets[y]
                 plrs[x].highAce.append(0)
@@ -304,7 +320,7 @@ def initialDeal(shoe, plrs, plrCount, first):
                     print("Player "+ str(i+1)+" push on hand "+str(j+1))
                 # Check if dealer had ace showing and that players bought insurance
                 elif(plrs[i].insurance and dlrAce):
-                    plrs[i].balance += plrs[i].bet*2
+                    plrs[i].balance += plrs[i].bets[j]*2
                     print("Player "+ str(i+1)+" cashes insurace on hand "+str(j+1))
         cleanup(plrs, dlr)
     else:
@@ -321,6 +337,9 @@ def main():
     decks = int(input("Welcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
     shoe = buildDeck(decks)
     plrCount = int(input("And how many of us have the winning mentality? "))
+    if(plrCount > 7 or plrCount < 1):
+        print("I'm sorry, Blackjack may only be played with at least 1 player and no more than 7")
+        main()
     print("Excellent.\n")
     initialDeal(shoe, [], plrCount, True)
 
