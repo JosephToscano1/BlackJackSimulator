@@ -138,49 +138,53 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
 
         # If a player has two of the same cards, allow them to split them into two hands
         if(action == "sp"):
-            card1 = plr.hands[handNo][0][: -1]
-            card2 = plr.hands[handNo][1][: -1]
-            if(card1 == card2):
-                # add new hand to the player that is splitting
-                plr.hands.insert(handNo, [plr.hands[handNo].pop(1)])
-                plr.handTotals.insert(handNo, 0)
-
-                # split hand total accross the two new hands by subtracting second card value from old total and adding it to new one
-                if(card2.isnumeric()):
-                    # number card
-                    plr.handTotals[handNo+1] -= int(card2)
-                    plr.handTotals[handNo] += int(card2)
-                elif(card2 == 'A'):
-                    # ace
-                    plr.handTotals[handNo+1] -= 11
-                    plr.handTotals[handNo] += 11
-                else:
-                    # face card
-                    plr.handTotals[handNo+1] -= 10
-                    plr.handTotals[handNo] += 10
-                
-                # adjust player bets and balance accordingly
-
-                plr.bets.insert(handNo, plr.bets[handNo])
-                plr.balance -= plr.bets[handNo]
-                
-                # deal to each new hand and print
-
-                dealToPlayer(shoe, plr, handNo)
-                dealToPlayer(shoe, plr, handNo+1)
-                print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 1) + ": " + str(
-                    plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
-                print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 2) + ": " + str(
-                    plr.hands[handNo+1]) + "\n Total: " + str(plr.handTotals[handNo+1]) + "\n")
-                
-                # If a pair of aces was split and the next card to a new hand is not an ace, player cannot act on the hand
-                if(not((card1 == 'A' and card2 != 'A') or (card2 == 'A' and card1 != 'A'))):
-                    initialPlayerOptions(plrNo, plr, handNo, shoe)
-                if(not((card1 == 'A' and card2 != 'A') or (card2 == 'A' and card1 != 'A'))):
-                    initialPlayerOptions(plrNo, plr, handNo+1, shoe)
-            else:
-                print("Sorry, you may only split when you have a pair of same-value cards")
+            if(plr.bets[handNo] > plr.balance):
+                print("Insufficient balance to split")
                 initialPlayerOptions(plrNo, plr, handNo, shoe)
+            else:
+                card1 = plr.hands[handNo][0][: -1]
+                card2 = plr.hands[handNo][1][: -1]
+                if(card1 == card2):
+                    # add new hand to the player that is splitting
+                    plr.hands.insert(handNo, [plr.hands[handNo].pop(1)])
+                    plr.handTotals.insert(handNo, 0)
+
+                    # split hand total accross the two new hands by subtracting second card value from old total and adding it to new one
+                    if(card2.isnumeric()):
+                        # number card
+                        plr.handTotals[handNo+1] -= int(card2)
+                        plr.handTotals[handNo] += int(card2)
+                    elif(card2 == 'A'):
+                        # ace
+                        plr.handTotals[handNo+1] -= 11
+                        plr.handTotals[handNo] += 11
+                    else:
+                        # face card
+                        plr.handTotals[handNo+1] -= 10
+                        plr.handTotals[handNo] += 10
+                    
+                    # adjust player bets and balance accordingly
+
+                    plr.bets.insert(handNo, plr.bets[handNo])
+                    plr.balance -= plr.bets[handNo]
+                    
+                    # deal to each new hand and print
+
+                    dealToPlayer(shoe, plr, handNo)
+                    dealToPlayer(shoe, plr, handNo+1)
+                    print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 1) + ": " + str(
+                        plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
+                    print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 2) + ": " + str(
+                        plr.hands[handNo+1]) + "\n Total: " + str(plr.handTotals[handNo+1]) + "\n")
+                    
+                    # If a pair of aces was split and the next card to a new hand is not an ace, player cannot act on the hand
+                    if(not((card1 == 'A' and card2 != 'A') or (card2 == 'A' and card1 != 'A'))):
+                        initialPlayerOptions(plrNo, plr, handNo, shoe)
+                    if(not((card1 == 'A' and card2 != 'A') or (card2 == 'A' and card1 != 'A'))):
+                        initialPlayerOptions(plrNo, plr, handNo+1, shoe)
+                else:
+                    print("Sorry, you may only split when you have a pair of same-value cards")
+                    initialPlayerOptions(plrNo, plr, handNo, shoe)
 
         # hit, deal a card to the player and update total. If the player did not bust, send to further actions
         if(action == "h"):
@@ -200,10 +204,14 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
 
         # double, subtract player bet again from total and adjust it. Deal one more card to player ending their turn.
         if(action == "d"):
-            plr.balance -= plr.bets[handNo]
-            plr.bets[handNo] += plr.bets[handNo]
-            dealToPlayer(shoe, plr, handNo)
-            print("Player " + str(plrNo) + "\n Balance: " + str(plr.balance) + "\n Hand "+ str(handNo + 1)+": " + str(plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
+            if(plr.bets[handNo] > plr.balance):
+                print("Insufficient balance to double")
+                initialPlayerOptions(plrNo, plr, handNo, shoe)
+            else:
+                plr.balance -= plr.bets[handNo]
+                plr.bets[handNo] += plr.bets[handNo]
+                dealToPlayer(shoe, plr, handNo)
+                print("Player " + str(plrNo) + "\n Balance: " + str(plr.balance) + "\n Hand "+ str(handNo + 1)+": " + str(plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
 
 # deal hands to each player and the dealer
 def initialDeal(shoe, plrs, plrCount, first):
@@ -223,18 +231,20 @@ def initialDeal(shoe, plrs, plrCount, first):
 
     enteredCount = False
     enteredBet = False
+    # For each player, check if they have a sufficient balance. If so, proceed, if not remove player
     for x in range(plrCount):
         if(plrs[x].balance < 10):
             plrs.pop(x)
             print("Player "+str(x+1)+" has been removed due to insufficient balance. Player numbers have shifted accordingly")
         else:
+            # progress when player enters a valid hand count
             while(not(enteredCount)):
                 handCount = int(input("Player "+str(x+1)+", how many hands are you playing with? "))
                 if(handCount > 3 or handCount < 1):
                     print("Apologies, each player must have at least 1 and no more than 3 hands")
                 else:
                     enteredCount = True
-
+            # progress when player enters a valid bet
             for y in range(handCount):
                 while(not(enteredBet)):
                     bet = int(input("Player " + str(x + 1) + ", place your bet for hand " + str(y + 1) + ": "))
@@ -243,6 +253,7 @@ def initialDeal(shoe, plrs, plrCount, first):
                     else:
                         enteredBet = True
 
+                # set player variables for current hand
                 plrs[x].bets.append(bet)
                 plrs[x].hands.append([])
                 plrs[x].balance -= plrs[x].bets[y]
