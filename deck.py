@@ -40,6 +40,10 @@ def buildDeck(decks):
             currShoe = deck
         else:
             shuffledShoe.append(currShoe.pop(random.randint(0, len(currShoe)-1)))
+
+    # Insert cut card at a random spot around 1-1.5 decks in
+    shuffledShoe.insert(random.randint(47, 83), "CUT")
+    
     return shuffledShoe
 
 # @param shoe, player to be dealt cards
