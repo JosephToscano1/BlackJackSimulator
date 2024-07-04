@@ -54,7 +54,6 @@ def buildDeck(shuffledShoe, decks):
 def dealToDealer(shoe, dlr):
     dlr.hand.append(shoe.decks.pop(0))
     currCard = dlr.hand[len(dlr.hand)-1][: -1]
-    print(currCard)
     if(currCard == "CUT"):
         dlr.hand.pop(len(dlr.hand)-1)
         shoe.cutDealt = True
@@ -76,7 +75,6 @@ def dealToPlayer(shoe, player, handNo):
     
     player.hands[handNo].append(shoe.decks.pop(0))
     currCard = player.hands[handNo][len(player.hands[handNo])-1][: -1]
-    print(currCard)
 
     # If cut card is reached, take note of it and continue dealing like normal
     if(currCard == "CUT"):
