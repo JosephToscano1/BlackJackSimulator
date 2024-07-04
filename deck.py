@@ -58,6 +58,7 @@ def dealToDealer(shoe, player):
     else:
         player.handTotal += 10
 
+# deal a card to the hand provided and update its total
 def dealToPlayer(shoe, player, handNo):
     player.hands[handNo].append(shoe.pop(0))
     currCard = player.hands[handNo][len(player.hands[handNo])-1][: -1]
@@ -75,24 +76,27 @@ def dealToPlayer(shoe, player, handNo):
 # reset hands, totals, and variables of player and dealer.
 def cleanup(plrs, dlr):
     for i in range(len(plrs)):
+        # check if a hand won, tied, or lost and update player's balance accordingly
         for j in range(len(plrs[i].hands)):
-            if(plrs[i].handTotals[j] == 21 and dlr.handTotal != 21):
+            if(plrs[i].handTotals[j] == 21 and len(plrs[i].hands[j]) == 2):
                 plrs[i].balance += plrs[i].bets[j]*3
                 print("Player "+ str(i+1) +" wins with Blackjack on hand "+str(j+1)+"!")
-            elif(plrs[i].handTotals[j] < 21 and ((plrs[i].handTotals[j] > dlr.handTotal) or (dlr.handTotal > 21))):
+            elif(plrs[i].handTotals[j] < 22 and ((plrs[i].handTotals[j] > dlr.handTotal) or (dlr.handTotal > 21))):
                 plrs[i].balance += plrs[i].bets[j]*2
                 print("Player "+ str(i+1)+ " wins on hand "+str(j+1)+"!")
-            elif(plrs[i].handTotals[j] == dlr.handTotal):
+            elif(plrs[i].handTotals[j] == dlr.handTotal and plrs[i].handTotals[j] < 22):
                 plrs[i].balance += plrs[i].bets[j]
                 print("Player " + str(i + 1) + " push on hand " + str(j + 1) + ", eh")
             else:
                 print("Player " + str(i + 1) + " loses on hand "+str(j+1)+" :( ")
         print("Balance: " + str(plrs[i].balance))
+    # reset initial values for player and dealer attributes
     for x in range(len(plrs)):
         plrs[x].hands = []
         plrs[x].highAce = []
         plrs[x].insurance = False
         plrs[x].handTotals = []
+        plrs[x].bets = []
     dlr.hand = []
     dlr.handTotal = 0
     dlr.highAce = False
@@ -103,6 +107,7 @@ def dlrTurn(shoe, dlr):
         dealToDealer(shoe, dlr)
         if(dlr.handTotal > 21 and dlr.highAce):
             dlr.handTotal -= 10
+            dlr.highAce = False
     print("Dealer hand after drawing cards:" + str(dlr.hand))
     print("Total: "+ str(dlr.handTotal))
 
@@ -131,38 +136,57 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
     if(plr.handTotals[handNo] != 21):
         action = input("Player "+str(plrNo)+": Given hand "+ str(handNo + 1)+", would you like to hit, stand, split, or double? (type h, st, sp, or d): ")
 
-
+        # If a player has two of the same cards, allow them to split them into two hands
         if(action == "sp"):
-            card1 = plr.hands[handNo][0][: -1]
-            card2 = plr.hands[handNo][1][: -1]
-            if(card1 == card2):
-                plr.hands.insert(handNo, [plr.hands[handNo].pop(1)])
-                plr.handTotals.insert(handNo, 0)
-                if(card2.isnumeric()):
-                    plr.handTotals[handNo+1] -= int(card2)
-                    plr.handTotals[handNo] += int(card2)
-                elif(card2 == 'A'):
-                    plr.handTotals[handNo+1] -= 11
-                    plr.handTotals[handNo] += 11
-                else:
-                    plr.handTotals[handNo+1] -= 10
-                    plr.handTotals[handNo] += 10
-                plr.bets.insert(handNo, plr.bets[handNo])
-                plr.balance -= plr.bets[handNo]
-                dealToPlayer(shoe, plr, handNo)
-                dealToPlayer(shoe, plr, handNo+1)
-                print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 1) + ": " + str(
-                    plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
-                print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 2) + ": " + str(
-                    plr.hands[handNo+1]) + "\n Total: " + str(plr.handTotals[handNo+1]) + "\n")
-                if(not((plr.hands[handNo][0][: -1] == 'A' and plr.hands[handNo][1][: -1] != 'A') or (plr.hands[handNo][1][: -1] == 'A' and plr.hands[handNo][0][: -1] != 'A'))):
-                    initialPlayerOptions(plrNo, plr, handNo, shoe)
-                if(not((plr.hands[handNo][0][: -1] == 'A' and plr.hands[handNo][1][: -1] != 'A') or (plr.hands[handNo][1][: -1] == 'A' and plr.hands[handNo][0][: -1] != 'A'))):
-                    initialPlayerOptions(plrNo, plr, handNo+1, shoe)
-            else:
-                print("Sorry, you may only split when you have a pair of same-value cards")
+            if(plr.bets[handNo] > plr.balance):
+                print("Insufficient balance to split")
                 initialPlayerOptions(plrNo, plr, handNo, shoe)
+            else:
+                card1 = plr.hands[handNo][0][: -1]
+                card2 = plr.hands[handNo][1][: -1]
+                if(card1 == card2):
+                    # add new hand to the player that is splitting
+                    plr.hands.insert(handNo, [plr.hands[handNo].pop(1)])
+                    plr.handTotals.insert(handNo, 0)
 
+                    # split hand total accross the two new hands by subtracting second card value from old total and adding it to new one
+                    if(card2.isnumeric()):
+                        # number card
+                        plr.handTotals[handNo+1] -= int(card2)
+                        plr.handTotals[handNo] += int(card2)
+                    elif(card2 == 'A'):
+                        # ace
+                        plr.handTotals[handNo+1] -= 11
+                        plr.handTotals[handNo] += 11
+                    else:
+                        # face card
+                        plr.handTotals[handNo+1] -= 10
+                        plr.handTotals[handNo] += 10
+                    
+                    # adjust player bets and balance accordingly
+
+                    plr.bets.insert(handNo, plr.bets[handNo])
+                    plr.balance -= plr.bets[handNo]
+                    
+                    # deal to each new hand and print
+
+                    dealToPlayer(shoe, plr, handNo)
+                    dealToPlayer(shoe, plr, handNo+1)
+                    print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 1) + ": " + str(
+                        plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
+                    print("Player " + str(plrNo) + "\n New Hand " + str(handNo + 2) + ": " + str(
+                        plr.hands[handNo+1]) + "\n Total: " + str(plr.handTotals[handNo+1]) + "\n")
+                    
+                    # If a pair of aces was split and the next card to a new hand is not an ace, player cannot act on the hand
+                    if(not((card1 == 'A' and card2 != 'A') or (card2 == 'A' and card1 != 'A'))):
+                        initialPlayerOptions(plrNo, plr, handNo, shoe)
+                    if(not((card1 == 'A' and card2 != 'A') or (card2 == 'A' and card1 != 'A'))):
+                        initialPlayerOptions(plrNo, plr, handNo+1, shoe)
+                else:
+                    print("Sorry, you may only split when you have a pair of same-value cards")
+                    initialPlayerOptions(plrNo, plr, handNo, shoe)
+
+        # hit, deal a card to the player and update total. If the player did not bust, send to further actions
         if(action == "h"):
             dealToPlayer(shoe, plr, handNo)
             if(plr.handTotals[handNo] > 21):
@@ -177,35 +201,60 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
             else:
                 print("Player " + str(plrNo) + "\n Hand "+ str(handNo + 1)+": " + str(plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
                 furtherPlayerOptions(plrNo, plr, handNo, shoe)
+
+        # double, subtract player bet again from total and adjust it. Deal one more card to player ending their turn.
         if(action == "d"):
-            plr.balance -= plr.bets[handNo]
-            plr.bets[handNo] += plr.bets[handNo]
-            dealToPlayer(shoe, plr, handNo)
-            print("Player " + str(plrNo) + "\n Balance: " + str(plr.balance) + "\n Hand "+ str(handNo + 1)+": " + str(plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
+            if(plr.bets[handNo] > plr.balance):
+                print("Insufficient balance to double")
+                initialPlayerOptions(plrNo, plr, handNo, shoe)
+            else:
+                plr.balance -= plr.bets[handNo]
+                plr.bets[handNo] += plr.bets[handNo]
+                dealToPlayer(shoe, plr, handNo)
+                print("Player " + str(plrNo) + "\n Balance: " + str(plr.balance) + "\n Hand "+ str(handNo + 1)+": " + str(plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
 
 # deal hands to each player and the dealer
 def initialDeal(shoe, plrs, plrCount, first):
     dlrAce = False
+    enteredCount = False
+    enteredBet = False
 
-    # For each player, populate their balance, bet, and placeholders
+    # If this is the first deal, get player balance and burn the first card, regardless, get number of hands and set default values for each player
     if(first):
         for x in range(plrCount):
             plrs.append(player(int(input("Player "+ str(x +1)+", how much of the college fund are we playing with today? ")),
                                [],
                                [], [], [], False))
-            for y in range(int(input("And how many hands are you playing with? "))):
-                plrs[x].bets.append(int(input("Player " + str(x + 1) + ", place your bet for hand "+ str(y+1)+ ": ")))
-                plrs[x].hands.append([])
-                plrs[x].balance -= plrs[x].bets[y]
-                plrs[x].highAce.append(0)
-                plrs[x].handTotals.append(0)
         #Burn first card
         shoe.pop(0)
         first = False
-    else:
-        for x in range(plrCount):
-            for y in range(int(input("Player "+ str(x+1) +", how many hands are you playing with? "))):
-                plrs[x].bets.append(int(input("Player " + str(x + 1) + ", place your bet for hand " + str(y + 1) + ": ")))
+
+    enteredCount = False
+    enteredBet = False
+    # For each player, check if they have a sufficient balance. If so, proceed, if not remove player
+    for x in range(plrCount):
+        if(plrs[x].balance < 10):
+            plrs.pop(x)
+            print("Player "+str(x+1)+" has been removed due to insufficient balance. Player numbers have shifted accordingly")
+        else:
+            # progress when player enters a valid hand count
+            while(not(enteredCount)):
+                handCount = int(input("Player "+str(x+1)+", how many hands are you playing with? "))
+                if(handCount > 3 or handCount < 1):
+                    print("Apologies, each player must have at least 1 and no more than 3 hands")
+                else:
+                    enteredCount = True
+            # progress when player enters a valid bet
+            for y in range(handCount):
+                while(not(enteredBet)):
+                    bet = int(input("Player " + str(x + 1) + ", place your bet for hand " + str(y + 1) + ": "))
+                    if(bet > plrs[x].balance):
+                        print("Insufficient balance for bet")
+                    else:
+                        enteredBet = True
+
+                # set player variables for current hand
+                plrs[x].bets.append(bet)
                 plrs[x].hands.append([])
                 plrs[x].balance -= plrs[x].bets[y]
                 plrs[x].highAce.append(0)
@@ -271,16 +320,18 @@ def initialDeal(shoe, plrs, plrCount, first):
                 plrs[i].balance -= plrs[i].bets[j] / 2
                 plrs[i].insurance = True
 
-    # Resolve game early if dealer has blackjack
+    # Resolve game early if dealer has blackjack, else proceed to initial options for each player hand
     if (dlr.handTotal == 21):
         print("Dealer has Blackjack")
         for i in range(plrCount):
             for j in range(len(plrs[i].hands)):
+                # Check if any players also have blackjack
                 if(plrs[i].handTotals[j] == 21):
                     plrs[i].balance += plrs[i].bets[j]
                     print("Player "+ str(i+1)+" push on hand "+str(j+1))
+                # Check if dealer had ace showing and that players bought insurance
                 elif(plrs[i].insurance and dlrAce):
-                    plrs[i].balance += plrs[i].bet*2
+                    plrs[i].balance += plrs[i].bets[j]*2
                     print("Player "+ str(i+1)+" cashes insurace on hand "+str(j+1))
         cleanup(plrs, dlr)
     else:
@@ -293,9 +344,14 @@ def initialDeal(shoe, plrs, plrCount, first):
 
 # get number of decks in the shoe and players
 def main():
+
     decks = int(input("Welcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
     shoe = buildDeck(decks)
     plrCount = int(input("And how many of us have the winning mentality? "))
+    if(plrCount > 7 or plrCount < 1):
+        print("I'm sorry, Blackjack may only be played with at least 1 player and no more than 7")
+        main()
     print("Excellent.\n")
     initialDeal(shoe, [], plrCount, True)
+
 main()
