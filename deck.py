@@ -355,7 +355,6 @@ def main():
     decks = int(input("Welcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
     shoe = cardShoe([], False)
     buildDeck(shoe, decks)
-    print(str(shoe.decks))
     plrCount = int(input("And how many of us have the winning mentality? "))
     if(plrCount > 7 or plrCount < 1):
         print("I'm sorry, Blackjack may only be played with at least 1 player and no more than 7")
