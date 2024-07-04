@@ -14,10 +14,14 @@ class dealer:
         self.handTotal = handTotal
         self.hand = hand
         self.highAce = highAce
+class cardShoe:
+    def __init__(self, decks, cutDealt):
+        self.decks = decks
+        self.cutDealt = cutDealt
 
 # @param int decks - number of decks
 # @return shoe comprised of given number of decks
-def buildDeck(decks):
+def buildDeck(shuffledShoe, decks):
 
     #Template deck of strings representing a 52 card deck of cards
 
@@ -25,7 +29,6 @@ def buildDeck(decks):
             "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h", "Jh", "Qh", "Kh", "Ah",
             "2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "10d", "Jd", "Qd", "Kd", "Ad",
             "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "Jc", "Qc", "Kc", "Ac"]
-    shuffledShoe = []
     currShoe = []
 
     #Make current shoe by putting together mutiple decks
@@ -36,46 +39,62 @@ def buildDeck(decks):
 
     for x in range(len(currShoe)):
         if(len(currShoe) == 1):
-            shuffledShoe.append(currShoe.pop(0))
+            shuffledShoe.decks.append(currShoe.pop(0))
             currShoe = deck
         else:
-            shuffledShoe.append(currShoe.pop(random.randint(0, len(currShoe)-1)))
+            shuffledShoe.decks.append(currShoe.pop(random.randint(0, len(currShoe)-1)))
 
     # Insert cut card at a random spot around 1-1.5 decks in
-    shuffledShoe.insert(random.randint(47, 83), "CUT")
-    
+    shuffledShoe.decks.insert(random.randint(47, 83), "CUTc")
+
     return shuffledShoe
 
-# @param shoe, player to be dealt cards
-# deal a card to a player's hand and update total
-def dealToDealer(shoe, player):
-    player.hand.append(shoe.pop(0))
-    currCard = player.hand[len(player.hand)-1][: -1]
-    if(currCard.isnumeric()):
-        player.handTotal += int(currCard)
-    elif(currCard == 'A'):
-        if(player.handTotal + 11 < 22):
-            player.handTotal +=  11
-            player.highAce = True
-        else:
-            player.handTotal += 1
+# @param shoe, dealer to be dealt cards
+# deal a card to the dealer and update total
+def dealToDealer(shoe, dlr):
+    dlr.hand.append(shoe.decks.pop(0))
+    currCard = dlr.hand[len(dlr.hand)-1][: -1]
+    print(currCard)
+    if(currCard == "CUT"):
+        dlr.hand.pop(len(dlr.hand)-1)
+        shoe.cutDealt = True
+        dealToDealer(shoe, dlr)
     else:
-        player.handTotal += 10
+        if(currCard.isnumeric()):
+            dlr.handTotal += int(currCard)
+        elif(currCard == 'A'):
+            if(dlr.handTotal + 11 < 22):
+                dlr.handTotal +=  11
+                dlr.highAce = True
+            else:
+                dlr.handTotal += 1
+        else:
+            dlr.handTotal += 10
 
 # deal a card to the hand provided and update its total
 def dealToPlayer(shoe, player, handNo):
-    player.hands[handNo].append(shoe.pop(0))
+    
+    player.hands[handNo].append(shoe.decks.pop(0))
     currCard = player.hands[handNo][len(player.hands[handNo])-1][: -1]
-    if(currCard.isnumeric()):
-        player.handTotals[handNo] += int(currCard)
-    elif(currCard == 'A'):
-        if(player.handTotals[handNo] + 11 < 22):
-            player.handTotals[handNo] +=  11
-            player.highAce[handNo] = 1
-        else:
-            player.handTotals[handNo] += 1
+    print(currCard)
+
+    # If cut card is reached, take note of it and continue dealing like normal
+    if(currCard == "CUT"):
+        player.hands[handNo].pop(len(player.hands[handNo])-1)
+        shoe.cutDealt = True
+        dealToPlayer(shoe, player, handNo)
     else:
-        player.handTotals[handNo] += 10
+        # If the card is a number, add it to total, if ace add either 1 or 11, face add 10
+        if(currCard.isnumeric()):
+            player.handTotals[handNo] += int(currCard)
+        elif(currCard == 'A'):
+            if(player.handTotals[handNo] + 11 < 22):
+                player.handTotals[handNo] +=  11
+                player.highAce[handNo] = 1
+            else:
+                player.handTotals[handNo] += 1
+        else:
+            player.handTotals[handNo] += 10
 
 # reset hands, totals, and variables of player and dealer.
 def cleanup(plrs, dlr):
@@ -104,7 +123,7 @@ def cleanup(plrs, dlr):
         plrs[x].bets = []
     dlr.hand = []
     dlr.handTotal = 0
-    dlr.highAce = False
+    dlr.highAce = False    
 
 # evaluate dealer's turn (draw until H17)
 def dlrTurn(shoe, dlr):
@@ -221,13 +240,14 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
                 dealToPlayer(shoe, plr, handNo)
                 print("Player " + str(plrNo) + "\n Balance: " + str(plr.balance) + "\n Hand "+ str(handNo + 1)+": " + str(plr.hands[handNo]) + "\n Total: " + str(plr.handTotals[handNo]) + "\n")
         
-        # surrender, give player half of their bet back and end their turn
+        # surrender, give player half of their bet back, remove the hand, and end their turn
         if(action == "su"):
             plr.balance += plr.bets[handNo]/2
-            print("Hand "+ str(handNo + 1) + "surrendered. \n Balance: "+ str(plr.balance))
+            plr.hands.pop(handNo)
+            print("Hand "+ str(handNo + 1) + " surrendered. \n Balance: "+ str(plr.balance))
 
 # deal hands to each player and the dealer
-def initialDeal(shoe, plrs, plrCount, first):
+def initialDeal(shoe, plrs, plrCount, first, decks):
     dlrAce = False
     enteredCount = False
     enteredBet = False
@@ -239,7 +259,7 @@ def initialDeal(shoe, plrs, plrCount, first):
                                [],
                                [], [], [], False))
         #Burn first card
-        shoe.pop(0)
+        shoe.decks.pop(0)
         first = False
 
     enteredCount = False
@@ -279,43 +299,13 @@ def initialDeal(shoe, plrs, plrCount, first):
     for y in range(2):
         for i in range(plrCount):
             for j in range(len(plrs[i].hands)):
-                plrs[i].hands[j].append(shoe.pop(0))
+                dealToPlayer(shoe, plrs[i], j)
         if(len(dlr.hand) == 0):
-            upCard = shoe.pop(0)
-            dlr.hand.append(upCard)
+            dealToDealer(shoe, dlr)
+            upCard = dlr.hand[0]
             print("\nDealer's up card: "+ upCard + "\n")
         else:
-            dlr.hand.append(shoe.pop(0))
-
-    # Calculate total hand value for each player, then display hand and total value
-    for i in range(plrCount):
-        for j in range(len(plrs[i].hands)):
-            for k in range(len(plrs[i].hands[j])):
-                currCard = plrs[i].hands[j][k][: -1]
-                if(currCard.isnumeric()):
-                    plrs[i].handTotals[j] += int(currCard)
-                elif(currCard == 'A'):
-                    if(plrs[i].handTotals[j] + 11 < 22):
-                        plrs[i].handTotals[j] +=  11
-                        plrs[i].highAce[j] = 1
-                    else:
-                        plrs[i].handTotals[j] += 1
-                else:
-                    plrs[i].handTotals[j] += 10
-
-    # Calculate dealer hand total
-    for i in range(len(dlr.hand)):
-        currCard = dlr.hand[i][: -1]
-        if (currCard.isnumeric()):
-            dlr.handTotal += int(currCard)
-        elif (currCard == 'A'):
-            if (dlr.handTotal + 11 < 22):
-                dlr.handTotal += 11
-                dlr.highAce = True
-            else:
-                dlr.handTotal += 1
-        else:
-            dlr.handTotal += 10
+            dealToDealer(shoe, dlr)
 
     # Display balance and hands for each player
     for i in range(plrCount):
@@ -353,18 +343,24 @@ def initialDeal(shoe, plrs, plrCount, first):
                 initialPlayerOptions(i+1, plrs[i], j, shoe)
         dlrTurn(shoe, dlr)
         cleanup(plrs, dlr)
-    initialDeal(shoe, plrs, plrCount, first)
+    if(shoe.cutDealt):
+        print("Cut card dealt, reshuffling shoe")
+        shoe = cardShoe([], False)
+        buildDeck(shoe, decks)
+    initialDeal(shoe, plrs, plrCount, first, decks)
 
 # get number of decks in the shoe and players
 def main():
 
     decks = int(input("Welcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
-    shoe = buildDeck(decks)
+    shoe = cardShoe([], False)
+    buildDeck(shoe, decks)
+    print(str(shoe.decks))
     plrCount = int(input("And how many of us have the winning mentality? "))
     if(plrCount > 7 or plrCount < 1):
         print("I'm sorry, Blackjack may only be played with at least 1 player and no more than 7")
         main()
     print("Excellent.\n")
-    initialDeal(shoe, [], plrCount, True)
+    initialDeal(shoe, [], plrCount, True, decks)
 
 main()
