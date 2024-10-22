@@ -347,7 +347,7 @@ def initialDeal(shoe, plrs, plrCount, first, decks, Hit17):
         buildDeck(shoe, decks)
     initialDeal(shoe, plrs, plrCount, first, decks, Hit17)
 
-# get number of decks in the shoe and players
+# get number of decks in the shoe and players 
 def main():
 
     decks = int(input("\nWelcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
