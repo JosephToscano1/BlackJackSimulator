@@ -350,7 +350,7 @@ def initialDeal(shoe, plrs, plrCount, first, decks):
 # get number of decks in the shoe and players
 def main():
 
-    decks = int(input("Welcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
+    decks = int(input("\nWelcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
     shoe = cardShoe([], False)
     buildDeck(shoe, decks)
     plrCount = int(input("And how many of us have the winning mentality? "))
