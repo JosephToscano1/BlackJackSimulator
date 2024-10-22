@@ -123,8 +123,8 @@ def cleanup(plrs, dlr):
     dlr.handTotal = 0
     dlr.highAce = False    
 
-# evaluate dealer's turn (draw until H17)
-def dlrTurn(shoe, dlr):
+# evaluate dealer's turn (draw until H17, default rules are S17)
+def dlrTurn(shoe, dlr, Hit17):
     while(dlr.handTotal<17):
         dealToDealer(shoe, dlr)
         if(dlr.handTotal > 21 and dlr.highAce):
@@ -245,7 +245,7 @@ def initialPlayerOptions(plrNo, plr, handNo, shoe):
             print("Hand "+ str(handNo + 1) + " surrendered. \n Balance: "+ str(plr.balance))
 
 # deal hands to each player and the dealer
-def initialDeal(shoe, plrs, plrCount, first, decks):
+def initialDeal(shoe, plrs, plrCount, first, decks, Hit17):
     dlrAce = False
     enteredCount = False
     enteredBet = False
@@ -339,13 +339,13 @@ def initialDeal(shoe, plrs, plrCount, first, decks):
         for i in range(plrCount):
             for j in range(len(plrs[i].hands)):
                 initialPlayerOptions(i+1, plrs[i], j, shoe)
-        dlrTurn(shoe, dlr)
+        dlrTurn(shoe, dlr, Hit17)
         cleanup(plrs, dlr)
     if(shoe.cutDealt):
         print("Cut card dealt, reshuffling shoe")
         shoe = cardShoe([], False)
         buildDeck(shoe, decks)
-    initialDeal(shoe, plrs, plrCount, first, decks)
+    initialDeal(shoe, plrs, plrCount, first, decks, Hit17)
 
 # get number of decks in the shoe and players
 def main():
@@ -353,11 +353,12 @@ def main():
     decks = int(input("\nWelcome to the Blackjack table, now let's go gambling! How many decks do you want to play with? "))
     shoe = cardShoe([], False)
     buildDeck(shoe, decks)
+    Hit17 = int(input("What ruleset should be played? Type 1 to play dealer must hit soft 17. Type 0 to play dealer must stand on soft 17: "))
     plrCount = int(input("And how many of us have the winning mentality? "))
     if(plrCount > 7 or plrCount < 1):
         print("I'm sorry, Blackjack may only be played with at least 1 player and no more than 7")
         main()
     print("Excellent.\n")
-    initialDeal(shoe, [], plrCount, True, decks)
+    initialDeal(shoe, [], plrCount, True, decks, Hit17)
 
 main()
