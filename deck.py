@@ -123,8 +123,15 @@ def cleanup(plrs, dlr):
     dlr.handTotal = 0
     dlr.highAce = False    
 
-# evaluate dealer's turn (draw until H17, default rules are S17)
+# evaluate dealer's turn (draw until Hard17, default rules are S17)
 def dlrTurn(shoe, dlr, Hit17):
+    # If H17 is reahed, give dealer one more card and then proceed as normal.
+    if(Hit17):
+        if(dlr.handTotal == 17 and dlr.highAce):
+            dealToDealer(shoe, dlr)
+            if(dlr.handTotal > 21 and dlr.highAce):
+                dlr.handTotal -= 10
+                dlr.highAce = False
     while(dlr.handTotal<17):
         dealToDealer(shoe, dlr)
         if(dlr.handTotal > 21 and dlr.highAce):
